@@ -7,7 +7,7 @@ FSS.Mesh = function(geometry, material) {
   FSS.Object.call(this);
   this.geometry = geometry || new FSS.Geometry();
   this.material = material || new FSS.Material();
-  this.side = FSS.FRONT;
+  this.side = FSS.BACK;
   this.visible = true;
 };
 
@@ -53,7 +53,7 @@ FSS.Mesh.prototype.update = function(lights, calculate) {
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.diffuse.rgba, light.diffuse.rgba);
         FSS.Vector4.multiplyScalar(this.material.slave.rgba, illuminance);
         FSS.Vector4.add(rhombus.color.rgba, this.material.slave.rgba);
-        rhombus.color.setAlpha(illuminance - 0.1);
+        rhombus.color.setAlpha(illuminance*0.5);
       }
 
       // Clamp & Format Color

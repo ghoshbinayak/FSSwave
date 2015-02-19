@@ -9,6 +9,7 @@ FSS.Scene = function() {
 
 FSS.Scene.prototype = {
   add: function(object) {
+    console.log('add called');
     if (object instanceof FSS.Mesh && !~this.meshes.indexOf(object)) {
       this.meshes.push(object);
     } else if (object instanceof FSS.Light && !~this.lights.indexOf(object)) {

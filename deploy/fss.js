@@ -500,23 +500,65 @@ FSS.Triangle.prototype = {
 };
 
 /**
+ * @class Rhombus
+ * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
+ */
+FSS.Rhombus = function(a, b, c, d) {
+  this.a = a || new FSS.Vertex();
+  this.b = b || new FSS.Vertex();
+  this.c = c || new FSS.Vertex();
+  this.d = d || new FSS.Vertex();
+  this.vertices = [this.a, this.b, this.c, this.d];
+  this.u = FSS.Vector3.create();
+  this.v = FSS.Vector3.create();
+  this.centroid = FSS.Vector3.create();
+  this.normal = FSS.Vector3.create();
+  this.color = new FSS.Color();
+  this.polygon = document.createElementNS(FSS.SVGNS, 'polygon');
+  this.polygon.setAttributeNS(null, 'stroke-linejoin', 'round');
+  this.polygon.setAttributeNS(null, 'stroke-miterlimit', '1');
+  this.polygon.setAttributeNS(null, 'stroke-width', '1');
+  this.computeCentroid();
+  this.computeNormal();
+};
+
+FSS.Rhombus.prototype = {
+  computeCentroid: function() {
+    this.centroid[0] = this.a.position[0] + this.b.position[0] + this.c.position[0] + this.d.position[0];
+    this.centroid[1] = this.a.position[1] + this.b.position[1] + this.c.position[1] + this.d.position[1];
+    this.centroid[2] = this.a.position[2] + this.b.position[2] + this.c.position[2] + this.d.position[2];
+    FSS.Vector3.divideScalar(this.centroid, 4);
+    return this;
+  },
+  computeNormal: function() {
+    FSS.Vector3.subtractVectors(this.u, this.b.position, this.a.position);
+    FSS.Vector3.subtractVectors(this.v, this.d.position, this.a.position);
+    FSS.Vector3.crossVectors(this.normal, this.u, this.v);
+    FSS.Vector3.normalise(this.normal);
+    return this;
+  }
+};
+
+/**
  * @class Geometry
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.Geometry = function() {
   this.vertices = [];
-  this.triangles = [];
+  this.rhombuses = [];
   this.dirty = false;
 };
 
 FSS.Geometry.prototype = {
   update: function() {
     if (this.dirty) {
-      var t,triangle;
-      for (t = this.triangles.length - 1; t >= 0; t--) {
-        triangle = this.triangles[t];
-        triangle.computeCentroid();
-        triangle.computeNormal();
+      var t,rhombus;
+      for (t = this.rhombuses.length - 1; t >= 0; t--) {
+        rhombus = this.rhombuses[t];
+        rhombus.computeCentroid();
+        rhombus.computeNormal();
       }
       this.dirty = false;
     }
@@ -527,6 +569,7 @@ FSS.Geometry.prototype = {
 /**
  * @class Plane
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.Plane = function(width, height, segments, slices) {
   FSS.Geometry.call(this);
@@ -539,14 +582,14 @@ FSS.Plane = function(width, height, segments, slices) {
 
   // Cache Variables
   var x, y, v0, v1, v2, v3,
-      vertex, triangle, vertices = [],
+      vertex, rhombus, vertices = [],
       offsetX = this.width * -0.5,
       offsetY = this.height * 0.5;
 
   // Add Vertices
-  for (x = 0; x <= this.segments; x++) {
+  for (x = 0; x <= this.segments + 1; x++) {
     vertices.push([]);
-    for (y = 0; y <= this.slices; y++) {
+    for (y = 0; y <= this.slices + 1; y++) {
       vertex = new FSS.Vertex(offsetX + x*this.segmentWidth, offsetY - y*this.sliceHeight);
       vertices[x].push(vertex);
       this.vertices.push(vertex);
@@ -556,13 +599,13 @@ FSS.Plane = function(width, height, segments, slices) {
   // Add Triangles
   for (x = 0; x < this.segments; x++) {
     for (y = 0; y < this.slices; y++) {
-      v0 = vertices[x+0][y+0];
-      v1 = vertices[x+0][y+1];
-      v2 = vertices[x+1][y+0];
-      v3 = vertices[x+1][y+1];
-      t0 = new FSS.Triangle(v0, v1, v2);
-      t1 = new FSS.Triangle(v2, v1, v3);
-      this.triangles.push(t0, t1);
+      v0 = vertices[x+1][y+0];
+      v1 = vertices[x+2][y+1];
+      v2 = vertices[x+1][y+2];
+      v3 = vertices[x+0][y+1];
+      r0 = new FSS.Rhombus(v0, v1, v2, v3);
+      this.rhombuses.push(r0);
+      // console.log(r0.vertices);
     }
   }
 };
@@ -582,41 +625,42 @@ FSS.Material = function(ambient, diffuse) {
 /**
  * @class Mesh
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.Mesh = function(geometry, material) {
   FSS.Object.call(this);
   this.geometry = geometry || new FSS.Geometry();
   this.material = material || new FSS.Material();
-  this.side = FSS.FRONT;
+  this.side = FSS.BACK;
   this.visible = true;
 };
 
 FSS.Mesh.prototype = Object.create(FSS.Object.prototype);
 
 FSS.Mesh.prototype.update = function(lights, calculate) {
-  var t,triangle, l,light, illuminance;
+  var t,rhombus, l,light, illuminance;
 
   // Update Geometry
   this.geometry.update();
 
-  // Calculate the triangle colors
+  // Calculate the rhombus colors
   if (calculate) {
 
-    // Iterate through Triangles
-    for (t = this.geometry.triangles.length - 1; t >= 0; t--) {
-      triangle = this.geometry.triangles[t];
+    // Iterate through rhombuses
+    for (t = this.geometry.rhombuses.length - 1; t >= 0; t--) {
+      rhombus = this.geometry.rhombuses[t];
 
-      // Reset Triangle Color
-      FSS.Vector4.set(triangle.color.rgba);
+      // Reset rhombus Color
+      FSS.Vector4.set(rhombus.color.rgba);
 
       // Iterate through Lights
       for (l = lights.length - 1; l >= 0; l--) {
         light = lights[l];
 
         // Calculate Illuminance
-        FSS.Vector3.subtractVectors(light.ray, light.position, triangle.centroid);
+        FSS.Vector3.subtractVectors(light.ray, light.position, rhombus.centroid);
         FSS.Vector3.normalise(light.ray);
-        illuminance = FSS.Vector3.dot(triangle.normal, light.ray);
+        illuminance = FSS.Vector3.dot(rhombus.normal, light.ray);
         if (this.side === FSS.FRONT) {
           illuminance = Math.max(illuminance, 0);
         } else if (this.side === FSS.BACK) {
@@ -627,17 +671,17 @@ FSS.Mesh.prototype.update = function(lights, calculate) {
 
         // Calculate Ambient Light
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.ambient.rgba, light.ambient.rgba);
-        FSS.Vector4.add(triangle.color.rgba, this.material.slave.rgba);
+        FSS.Vector4.add(rhombus.color.rgba, this.material.slave.rgba);
 
         // Calculate Diffuse Light
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.diffuse.rgba, light.diffuse.rgba);
         FSS.Vector4.multiplyScalar(this.material.slave.rgba, illuminance);
-        FSS.Vector4.add(triangle.color.rgba, this.material.slave.rgba);
-        triangle.color.setAlpha(illuminance - 0.1);
+        FSS.Vector4.add(rhombus.color.rgba, this.material.slave.rgba);
+        rhombus.color.setAlpha(illuminance*0.5);
       }
 
       // Clamp & Format Color
-      FSS.Vector4.clamp(triangle.color.rgba, 0, 1);
+      FSS.Vector4.clamp(rhombus.color.rgba, 0, 1);
     }
   }
   return this;
@@ -654,6 +698,7 @@ FSS.Scene = function() {
 
 FSS.Scene.prototype = {
   add: function(object) {
+    console.log('add called');
     if (object instanceof FSS.Mesh && !~this.meshes.indexOf(object)) {
       this.meshes.push(object);
     } else if (object instanceof FSS.Light && !~this.lights.indexOf(object)) {
@@ -702,6 +747,7 @@ FSS.Renderer.prototype = {
 /**
  * @class Canvas Renderer
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.CanvasRenderer = function() {
   FSS.Renderer.call(this);
@@ -729,7 +775,7 @@ FSS.CanvasRenderer.prototype.clear = function() {
 
 FSS.CanvasRenderer.prototype.render = function(scene) {
   FSS.Renderer.prototype.render.call(this, scene);
-  var m,mesh, t,triangle, color;
+  var m,mesh, t,rhombus, color;
 
   // Clear Context
   this.clear();
@@ -738,23 +784,28 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
   this.context.lineJoin = 'round';
   this.context.lineWidth = 1;
 
+
   // Update Meshes
   for (m = scene.meshes.length - 1; m >= 0; m--) {
     mesh = scene.meshes[m];
     if (mesh.visible) {
       mesh.update(scene.lights, true);
 
-      // Render Triangles
-      for (t = mesh.geometry.triangles.length - 1; t >= 0; t--) {
-        triangle = mesh.geometry.triangles[t];
-        color = triangle.color.getRGBA();
-        this.context.beginPath();
-        this.context.moveTo(triangle.a.position[0], triangle.a.position[1]);
-        this.context.lineTo(triangle.b.position[0], triangle.b.position[1]);
-        this.context.lineTo(triangle.c.position[0], triangle.c.position[1]);
-        this.context.closePath();
+      // Render Rhombuses
+      for (t = mesh.geometry.rhombuses.length - 1; t >= 0; t--) {
+        rhombus = mesh.geometry.rhombuses[t];
+        color = rhombus.color.getRGBA();
+        // console.log(color);
         this.context.strokeStyle = color;
         this.context.fillStyle = color;
+        // this.context.font = "12px Ubuntu";
+        // this.context.fillText("" + color, rhombus.centroid[0], rhombus.centroid[1]);
+        this.context.beginPath();
+        this.context.moveTo(rhombus.a.position[0], rhombus.a.position[1]);
+        this.context.lineTo(rhombus.b.position[0], rhombus.b.position[1]);
+        this.context.lineTo(rhombus.c.position[0], rhombus.c.position[1]);
+        this.context.lineTo(rhombus.d.position[0], rhombus.d.position[1]);
+        this.context.closePath();
         // this.context.stroke();
         this.context.fill();
       }

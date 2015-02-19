@@ -1,6 +1,7 @@
 /**
  * @class Plane
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.Plane = function(width, height, segments, slices) {
   FSS.Geometry.call(this);
@@ -34,8 +35,9 @@ FSS.Plane = function(width, height, segments, slices) {
       v1 = vertices[x+2][y+1];
       v2 = vertices[x+1][y+2];
       v3 = vertices[x+0][y+1];
-      r0 = new FSS.Rhombus(v0, v1, v2, v4);
+      r0 = new FSS.Rhombus(v0, v1, v2, v3);
       this.rhombuses.push(r0);
+      // console.log(r0.vertices);
     }
   }
 };

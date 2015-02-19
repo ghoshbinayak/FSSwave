@@ -10,11 +10,16 @@
     <style>
     body {
       background: #FFFFFF;
+      background-image: url('file:///home/binayak/Pictures/sample2.png');
+      -webkit-background-size: cover;
+      background-size: cover;
+      background-position: 0 100vh;
       margin: 0;
     }
     .container {
       position: absolute;
-      height: 100%;
+      bottom: 0;
+      height: 50%;
       width: 100%;
     }
     </style>
@@ -31,16 +36,19 @@
     var container = document.getElementById('container');
     var renderer = new FSS.CanvasRenderer();
     var scene = new FSS.Scene();
-    var light = new FSS.Light('#FF0000', '#FF0022');
-    var geometry = new FSS.Plane(600, 400, 6, 4);
-    var material = new FSS.Material('#0000FF', '#0000FF');
+    var light1 = new FSS.Light('#2887c4', '#000000');
+    var light2 = new FSS.Light('#2887c4', '#000001');
+    var geometry = new FSS.Plane(1400, 300, 12, 4);
+    var material = new FSS.Material('#2887c4', '#2887c4');
     var mesh = new FSS.Mesh(geometry, material);
     var now, start = Date.now();
-    var xPos = -500;
+    var xPos1 = -800;
+    var xPos2 = 0;
 
     function initialise() {
       scene.add(mesh);
-      scene.add(light);
+      scene.add(light2);
+      scene.add(light1);
       container.appendChild(renderer.element);
       window.addEventListener('resize', resize);
     }
@@ -51,12 +59,17 @@
 
     function animate() {
       now = Date.now() - start;
-      if (xPos  > 500) {
-        xPos = -500;
+      if (xPos1  > 800) {
+        xPos1 = -800;
       }
-      xPos += 5; 
-      console.log(xPos);
-      light.setPosition(xPos, -200 + 100*Math.sin(now*0.005), 60);
+      if (xPos2  > 800) {
+        xPos2 = -800;
+      }
+      xPos1 += 4;
+      xPos2 += 4;
+      // console.log(xPos);
+      light1.setPosition(xPos1, -150 + 50*Math.sin(now*0.001), 60);
+      light2.setPosition(xPos2, -150 + 50*Math.sin(now*0.001), 60);
       renderer.render(scene);
       requestAnimationFrame(animate);
     }

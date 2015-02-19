@@ -1,6 +1,7 @@
 /**
  * @class Canvas Renderer
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.CanvasRenderer = function() {
   FSS.Renderer.call(this);
@@ -28,7 +29,7 @@ FSS.CanvasRenderer.prototype.clear = function() {
 
 FSS.CanvasRenderer.prototype.render = function(scene) {
   FSS.Renderer.prototype.render.call(this, scene);
-  var m,mesh, t,triangle, color;
+  var m,mesh, t,rhombus, color;
 
   // Clear Context
   this.clear();
@@ -37,23 +38,28 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
   this.context.lineJoin = 'round';
   this.context.lineWidth = 1;
 
+
   // Update Meshes
   for (m = scene.meshes.length - 1; m >= 0; m--) {
     mesh = scene.meshes[m];
     if (mesh.visible) {
       mesh.update(scene.lights, true);
 
-      // Render Triangles
-      for (t = mesh.geometry.triangles.length - 1; t >= 0; t--) {
-        triangle = mesh.geometry.triangles[t];
-        color = triangle.color.getRGBA();
-        this.context.beginPath();
-        this.context.moveTo(triangle.a.position[0], triangle.a.position[1]);
-        this.context.lineTo(triangle.b.position[0], triangle.b.position[1]);
-        this.context.lineTo(triangle.c.position[0], triangle.c.position[1]);
-        this.context.closePath();
+      // Render Rhombuses
+      for (t = mesh.geometry.rhombuses.length - 1; t >= 0; t--) {
+        rhombus = mesh.geometry.rhombuses[t];
+        color = rhombus.color.getRGBA();
+        // console.log(color);
         this.context.strokeStyle = color;
         this.context.fillStyle = color;
+        // this.context.font = "12px Ubuntu";
+        // this.context.fillText("" + color, rhombus.centroid[0], rhombus.centroid[1]);
+        this.context.beginPath();
+        this.context.moveTo(rhombus.a.position[0], rhombus.a.position[1]);
+        this.context.lineTo(rhombus.b.position[0], rhombus.b.position[1]);
+        this.context.lineTo(rhombus.c.position[0], rhombus.c.position[1]);
+        this.context.lineTo(rhombus.d.position[0], rhombus.d.position[1]);
+        this.context.closePath();
         // this.context.stroke();
         this.context.fill();
       }
