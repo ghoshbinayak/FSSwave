@@ -1,6 +1,7 @@
 /**
  * @class Mesh
  * @author Matthew Wagerfield
+ * @modifiedby Binayak Ghosh
  */
 FSS.Mesh = function(geometry, material) {
   FSS.Object.call(this);
@@ -13,29 +14,29 @@ FSS.Mesh = function(geometry, material) {
 FSS.Mesh.prototype = Object.create(FSS.Object.prototype);
 
 FSS.Mesh.prototype.update = function(lights, calculate) {
-  var t,triangle, l,light, illuminance;
+  var t,rhombus, l,light, illuminance;
 
   // Update Geometry
   this.geometry.update();
 
-  // Calculate the triangle colors
+  // Calculate the rhombus colors
   if (calculate) {
 
-    // Iterate through Triangles
-    for (t = this.geometry.triangles.length - 1; t >= 0; t--) {
-      triangle = this.geometry.triangles[t];
+    // Iterate through rhombuses
+    for (t = this.geometry.rhombuses.length - 1; t >= 0; t--) {
+      rhombus = this.geometry.rhombuses[t];
 
-      // Reset Triangle Color
-      FSS.Vector4.set(triangle.color.rgba);
+      // Reset rhombus Color
+      FSS.Vector4.set(rhombus.color.rgba);
 
       // Iterate through Lights
       for (l = lights.length - 1; l >= 0; l--) {
         light = lights[l];
 
         // Calculate Illuminance
-        FSS.Vector3.subtractVectors(light.ray, light.position, triangle.centroid);
+        FSS.Vector3.subtractVectors(light.ray, light.position, rhombus.centroid);
         FSS.Vector3.normalise(light.ray);
-        illuminance = FSS.Vector3.dot(triangle.normal, light.ray);
+        illuminance = FSS.Vector3.dot(rhombus.normal, light.ray);
         if (this.side === FSS.FRONT) {
           illuminance = Math.max(illuminance, 0);
         } else if (this.side === FSS.BACK) {
@@ -46,16 +47,17 @@ FSS.Mesh.prototype.update = function(lights, calculate) {
 
         // Calculate Ambient Light
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.ambient.rgba, light.ambient.rgba);
-        FSS.Vector4.add(triangle.color.rgba, this.material.slave.rgba);
+        FSS.Vector4.add(rhombus.color.rgba, this.material.slave.rgba);
 
         // Calculate Diffuse Light
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.diffuse.rgba, light.diffuse.rgba);
         FSS.Vector4.multiplyScalar(this.material.slave.rgba, illuminance);
-        FSS.Vector4.add(triangle.color.rgba, this.material.slave.rgba);
+        FSS.Vector4.add(rhombus.color.rgba, this.material.slave.rgba);
+        rhombus.color.setAlpha(illuminance - 0.1);
       }
 
       // Clamp & Format Color
-      FSS.Vector4.clamp(triangle.color.rgba, 0, 1);
+      FSS.Vector4.clamp(rhombus.color.rgba, 0, 1);
     }
   }
   return this;

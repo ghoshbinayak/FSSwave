@@ -30,5 +30,15 @@ FSS.Color.prototype = {
     var b = this.hexify(this.rgba[2]);
     this.hex = '#' + r + g + b;
     return this.hex;
+  },
+  setAlpha: function(opacity){
+    this.rgba[3] = FSS.Utils.isNumber(opacity) ? opacity : this.rgba[3];
+  },
+  getRGBA: function(){
+    var r = Math.floor(this.rgba[0]*255);
+    var g = Math.floor(this.rgba[1]*255);
+    var b = Math.floor(this.rgba[2]*255);
+    var a = this.rgba[3];
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   }
 };

@@ -13,14 +13,14 @@ FSS.Plane = function(width, height, segments, slices) {
 
   // Cache Variables
   var x, y, v0, v1, v2, v3,
-      vertex, triangle, vertices = [],
+      vertex, rhombus, vertices = [],
       offsetX = this.width * -0.5,
       offsetY = this.height * 0.5;
 
   // Add Vertices
-  for (x = 0; x <= this.segments; x++) {
+  for (x = 0; x <= this.segments + 1; x++) {
     vertices.push([]);
-    for (y = 0; y <= this.slices; y++) {
+    for (y = 0; y <= this.slices + 1; y++) {
       vertex = new FSS.Vertex(offsetX + x*this.segmentWidth, offsetY - y*this.sliceHeight);
       vertices[x].push(vertex);
       this.vertices.push(vertex);
@@ -30,13 +30,12 @@ FSS.Plane = function(width, height, segments, slices) {
   // Add Triangles
   for (x = 0; x < this.segments; x++) {
     for (y = 0; y < this.slices; y++) {
-      v0 = vertices[x+0][y+0];
-      v1 = vertices[x+0][y+1];
-      v2 = vertices[x+1][y+0];
-      v3 = vertices[x+1][y+1];
-      t0 = new FSS.Triangle(v0, v1, v2);
-      t1 = new FSS.Triangle(v2, v1, v3);
-      this.triangles.push(t0, t1);
+      v0 = vertices[x+1][y+0];
+      v1 = vertices[x+2][y+1];
+      v2 = vertices[x+1][y+2];
+      v3 = vertices[x+0][y+1];
+      r0 = new FSS.Rhombus(v0, v1, v2, v4);
+      this.rhombuses.push(r0);
     }
   }
 };

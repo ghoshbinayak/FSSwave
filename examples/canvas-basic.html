@@ -9,7 +9,7 @@
 
     <style>
     body {
-      background: #111118;
+      background: #FFFFFF;
       margin: 0;
     }
     .container {
@@ -31,11 +31,12 @@
     var container = document.getElementById('container');
     var renderer = new FSS.CanvasRenderer();
     var scene = new FSS.Scene();
-    var light = new FSS.Light('#111122', '#FF0022');
+    var light = new FSS.Light('#FF0000', '#FF0022');
     var geometry = new FSS.Plane(600, 400, 6, 4);
-    var material = new FSS.Material('#FFFFFF', '#FFFFFF');
+    var material = new FSS.Material('#0000FF', '#0000FF');
     var mesh = new FSS.Mesh(geometry, material);
     var now, start = Date.now();
+    var xPos = -500;
 
     function initialise() {
       scene.add(mesh);
@@ -50,7 +51,12 @@
 
     function animate() {
       now = Date.now() - start;
-      light.setPosition(300*Math.sin(now*0.001), 200*Math.cos(now*0.0005), 60);
+      if (xPos  > 500) {
+        xPos = -500;
+      }
+      xPos += 5; 
+      console.log(xPos);
+      light.setPosition(xPos, -200 + 100*Math.sin(now*0.005), 60);
       renderer.render(scene);
       requestAnimationFrame(animate);
     }

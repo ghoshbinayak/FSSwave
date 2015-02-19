@@ -1,8 +1,8 @@
 //============================================================
 //
-// Copyright (C) 2013 Matthew Wagerfield
+// Copyright (C) 2014 Matthew Wagerfield
 //
-// Twitter: https://twitter.com/mwagerfield
+// Twitter: https://twitter.com/wagerfield
 //
 // Permission is hereby granted, free of charge, to any
 // person obtaining a copy of this software and associated
@@ -404,6 +404,16 @@ FSS.Color.prototype = {
     var b = this.hexify(this.rgba[2]);
     this.hex = '#' + r + g + b;
     return this.hex;
+  },
+  setAlpha: function(opacity){
+    this.rgba[3] = FSS.Utils.isNumber(opacity) ? opacity : this.rgba[3];
+  },
+  getRGBA: function(){
+    var r = Math.floor(this.rgba[0]*255);
+    var g = Math.floor(this.rgba[1]*255);
+    var b = Math.floor(this.rgba[2]*255);
+    var a = this.rgba[3];
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   }
 };
 
@@ -564,8 +574,8 @@ FSS.Plane.prototype = Object.create(FSS.Geometry.prototype);
  * @author Matthew Wagerfield
  */
 FSS.Material = function(ambient, diffuse) {
-  this.ambient = new FSS.Color(ambient || '#444444');
-  this.diffuse = new FSS.Color(diffuse || '#FFFFFF');
+  this.ambient = new FSS.Color(ambient || '#444444', 0.0);
+  this.diffuse = new FSS.Color(diffuse || '#FFFFFF', 0.0);
   this.slave = new FSS.Color();
 };
 
@@ -623,6 +633,7 @@ FSS.Mesh.prototype.update = function(lights, calculate) {
         FSS.Vector4.multiplyVectors(this.material.slave.rgba, this.material.diffuse.rgba, light.diffuse.rgba);
         FSS.Vector4.multiplyScalar(this.material.slave.rgba, illuminance);
         FSS.Vector4.add(triangle.color.rgba, this.material.slave.rgba);
+        triangle.color.setAlpha(illuminance - 0.1);
       }
 
       // Clamp & Format Color
@@ -736,7 +747,7 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
       // Render Triangles
       for (t = mesh.geometry.triangles.length - 1; t >= 0; t--) {
         triangle = mesh.geometry.triangles[t];
-        color = triangle.color.format();
+        color = triangle.color.getRGBA();
         this.context.beginPath();
         this.context.moveTo(triangle.a.position[0], triangle.a.position[1]);
         this.context.lineTo(triangle.b.position[0], triangle.b.position[1]);
@@ -744,7 +755,7 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
         this.context.closePath();
         this.context.strokeStyle = color;
         this.context.fillStyle = color;
-        this.context.stroke();
+        // this.context.stroke();
         this.context.fill();
       }
     }

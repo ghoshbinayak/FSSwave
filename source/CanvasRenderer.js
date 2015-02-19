@@ -46,7 +46,7 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
       // Render Triangles
       for (t = mesh.geometry.triangles.length - 1; t >= 0; t--) {
         triangle = mesh.geometry.triangles[t];
-        color = triangle.color.format();
+        color = triangle.color.getRGBA();
         this.context.beginPath();
         this.context.moveTo(triangle.a.position[0], triangle.a.position[1]);
         this.context.lineTo(triangle.b.position[0], triangle.b.position[1]);
@@ -54,7 +54,7 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
         this.context.closePath();
         this.context.strokeStyle = color;
         this.context.fillStyle = color;
-        this.context.stroke();
+        // this.context.stroke();
         this.context.fill();
       }
     }
